@@ -1,6 +1,8 @@
 # Building a Remote MCP Server on Cloudflare (Without Auth)
 
-This is a demo of my blog post https://www.mofei.life/en/blog/article/ai-mcp-server-for-llm-integration 
+## This is a demo of my blog post https://www.mofei.life/en/blog/article/ai-mcp-server-for-llm-integration 
+
+----
 
 This example allows you to deploy a remote MCP server that doesn't require authentication on Cloudflare Workers. 
 
