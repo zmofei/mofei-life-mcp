@@ -1,54 +1,47 @@
-# Building a Remote MCP Server on Cloudflare (Without Auth)
+# ChatGPT App MCP Backend for Mofei's Blog
 
-## This is a demo of my blog post https://www.mofei.life/en/blog/article/ai-mcp-server-for-llm-integration 
+This repository hosts the Cloudflare Workers MCP server that powers the blog app from the article [“How to Build a ChatGPT App From Scratch: MCP Integration, Custom Widgets, and Real API Examples”](https://www.mofei.life/en/blog/article/chatgpt-app). It exposes Mofei's blog APIs as MCP tools so ChatGPT (and any MCP client) can browse posts, fetch details, and surface recommendations.
 
-----
+## What’s inside
+- Cloudflare Worker + Durable Object MCP server (`src/index.ts`) with SSE endpoints at `/sse` and `/mcp`.
+- Four blog-focused MCP tools: `list-blog-posts`, `get-blog-article`, `get-comment-list`, and `get-recommend-blog`.
+- Wrangler configuration (`wrangler.jsonc`) ready for local dev and production deploy.
 
-This example allows you to deploy a remote MCP server that doesn't require authentication on Cloudflare Workers. 
+## Quick start (local)
+1. Install dependencies: `npm install`
+2. Start the dev server: `npm run dev`
+3. The MCP endpoints are available at `http://localhost:8787/sse` (SSE) and `http://localhost:8787/mcp`.
 
-## Get started: 
+If you need to expose local dev to ChatGPT, run `ngrok http 8787` (or your tunneling tool) and append `/sse` to the public URL.
 
-[![Deploy to Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/ai/tree/main/demos/remote-mcp-authless)
+## Deploy to Cloudflare Workers
+1. Configure your Cloudflare account with Wrangler (`npm create cloudflare@latest` if you need an account setup).
+2. Deploy: `npm run deploy`
+3. Your public MCP endpoint will be `https://<worker-name>.<your-account>.workers.dev/sse`.
 
-This will deploy your MCP server to a URL like: `remote-mcp-server-authless.<your-account>.workers.dev/sse`
+## Connect from ChatGPT (Apps Developer Mode)
+1. In ChatGPT: Settings → Apps & Connectors → Advanced settings → Enable “Developer mode”.
+2. Create a connection and set “MCP Server URL” to your endpoint:
+   - Cloudflare: `https://<worker-name>.<your-account>.workers.dev/sse`
+   - Local via ngrok: `https://<random>.ngrok.io/sse`
+   - Keep the trailing `/sse`.
+3. Test the connection to confirm tools and resources are detected, then save.
+4. Try a prompt such as: “Show me the latest posts from Mofei’s blog in English.”
 
-Alternatively, you can use the command line below to get the remote MCP Server created on your local machine:
-```bash
-npm create cloudflare@latest -- my-mcp-server --template=cloudflare/ai/demos/remote-mcp-authless
-```
+## Available tools
+- `list-blog-posts` — Paginated blog list. Params: `page` (number), `lang` (`en`/`zh`).
+- `get-blog-article` — Fetch a specific article by `id` and `lang`.
+- `get-comment-list` — Retrieve comments with `page` and `pageSize`.
+- `get-recommend-blog` — Related articles for a given `id` and `lang`.
 
-## Customizing your MCP Server
+Responses return the underlying JSON from `https://api.mofei.life`. For UI widgets, pair this server with the single-file widget bundle described in the blog post (structured content for the model + `_meta` for the widget data).
 
-To add your own [tools](https://developers.cloudflare.com/agents/model-context-protocol/tools/) to the MCP server, define each tool inside the `init()` method of `src/index.ts` using `this.server.tool(...)`. 
+## Useful scripts
+- `npm run dev` — Local dev server on port 8787.
+- `npm run deploy` — Deploy to Cloudflare Workers.
+- `npm run format` / `npm run lint:fix` — Biome formatting and linting.
 
-## Connect to Cloudflare AI Playground
-
-You can connect to your MCP server from the Cloudflare AI Playground, which is a remote MCP client:
-
-1. Go to https://playground.ai.cloudflare.com/
-2. Enter your deployed MCP server URL (`remote-mcp-server-authless.<your-account>.workers.dev/sse`)
-3. You can now use your MCP tools directly from the playground!
-
-## Connect Claude Desktop to your MCP server
-
-You can also connect to your remote MCP server from local MCP clients, by using the [mcp-remote proxy](https://www.npmjs.com/package/mcp-remote). 
-
-To connect to your MCP server from Claude Desktop, follow [Anthropic's Quickstart](https://modelcontextprotocol.io/quickstart/user) and within Claude Desktop go to Settings > Developer > Edit Config.
-
-Update with this configuration:
-
-```json
-{
-  "mcpServers": {
-    "mofei-blog": {
-      "command": "npx",
-      "args": [
-        "mcp-remote",
-        "https://mcp.mofei.life/sse"
-      ]
-    }
-  }
-}
-```
-
-Restart Claude and you should see the tools become available. 
+## More resources
+- Full article: https://www.mofei.life/en/blog/article/chatgpt-app
+- ChatGPT Apps SDK docs: https://developers.openai.com/apps-sdk
+- MCP spec: https://modelcontextprotocol.io/
